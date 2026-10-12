@@ -92,6 +92,7 @@
   .project li::before { content: ""; position: absolute; left: 0; top: .78em; width: 8px; height: 1px; background: var(--horizon); }
   .project .links { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 1.4rem; }
   .project .links a { font: 500 1rem/1.4 var(--display); }
+  .project .links .hint { flex-basis: 100%; color: var(--muted); }
 
   /* ---------- more builds ---------- */
   .more { display: grid; gap: 4px 48px; margin: 0; padding: 0; list-style: none; }
@@ -220,8 +221,17 @@ const PROJECTS = [
       'The downtown grid draws in about 6 calls; each ring of distant towers is one instanced draw.',
       'Leave any room and you come back out at its door.'
     ],
-    url: 'https://shaden.technology/lobby/', label: 'Enter the Lobby, talk to Nexie, then take the elevator down to explore the city', panelLabel: 'Enter the Lobby',
+    url: 'https://shaden.technology/lobby/', label: 'Enter the Lobby', hint: 'Talk to Nexie, then take the elevator down to the ground level to explore the city.',
     accent: '#5f86b8' },
+  { id: 'council', name: 'The Council',
+    what: 'Seven AI characters in one conversation. Speak a name and that one answers.',
+    decisions: [
+      'They share the conversation, so each one answers knowing what the others said.',
+      'Each knows only what it is given, so it stays in character and on topic.',
+      'Model calls run on Cloudflare Workers, so API keys never reach the browser.'
+    ],
+    url: 'https://originsoflate.xyz/council/', label: 'Meet them',
+    accent: '#b79cf2' },
   { id: 'pub', name: 'The Pub',
     what: 'A first-person bar with an AI bartender, a jukebox and the game on every screen.',
     decisions: [
@@ -249,15 +259,6 @@ const PROJECTS = [
     ],
     url: 'https://shaden.technology/arcade/', label: 'Play',
     accent: '#ffd166' },
-  { id: 'council', name: 'The Council',
-    what: 'Seven AI characters in one conversation. Speak a name and that one answers.',
-    decisions: [
-      'They share the conversation, so each one answers knowing what the others said.',
-      'Each knows only what it is given, so it stays in character and on topic.',
-      'Model calls run on Cloudflare Workers, so API keys never reach the browser.'
-    ],
-    url: 'https://originsoflate.xyz/council/', label: 'Meet them',
-    accent: '#b79cf2' },
   { id: 'worldvest', name: 'WorldVest',
     what: 'A separate product from the Nexus: a shared market watchlist with an AI analyst named Maya. Built with a friend.',
     decisions: [
@@ -318,7 +319,7 @@ PROJECTS.forEach(p => {
       el('h3', { text: p.name }),
       el('p', { class: 'what', text: p.what }),
       el('ul', {}, p.decisions.map(d => el('li', { text: d }))),
-      el('div', { class: 'links' }, el('a', { href: url, text: label })))));
+      el('div', { class: 'links' }, el('a', { href: url, text: label }), p.hint && el('span', { class: 'hint', text: p.hint })))));
 });
 
 const moreEl = document.getElementById('more-list');
