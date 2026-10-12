@@ -16,7 +16,6 @@
   Edit the PROJECTS, MORE and NOTES arrays near the bottom; the page is drawn from them.
   Previews: save a screenshot for each project at media/<id>.jpg (nexus, pub, temple, arcade, council, worldvest).
   Until they exist, each project shows its own colored panel instead of a broken player.
-  Resume: export the resume doc as PDF and save it next to this file as resume.pdf.
 -->
 <style>
   :root {
@@ -47,9 +46,9 @@
   /* ---------- hero: the district at purple hour ---------- */
   .hero { position: relative; min-height: min(100svh, 860px); display: flex; flex-direction: column; overflow: hidden;
     background: linear-gradient(180deg, #050b1d 0%, #0b1a3a 38%, #13295a 60%, #24467c 76%, #5f86b8 88%, #142446 100%); }
-  .hero canvas { position: absolute; inset: 0 0 auto 0; width: 100%; height: 78%; pointer-events: none; }
-  .hero .skyline { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 34%; display: block; }
-  .hero-text { width: 100%; position: relative; z-index: 1; padding-top: clamp(72px, 16vh, 168px); padding-bottom: 38vh; }
+  #rain { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+  .hero .skyline { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 34%; display: block; z-index: 2; }
+  .hero-text { width: 100%; position: relative; z-index: 3; padding-top: clamp(72px, 16vh, 168px); padding-bottom: 38vh; }
   .hero h1 { font-size: clamp(3rem, 8.5vw, 6.75rem); font-weight: 500; line-height: .95; letter-spacing: -.035em; }
   .hero .lede { margin-top: 1.4rem; font-size: clamp(1.125rem, 1.9vw, 1.375rem); max-width: 34ch; color: var(--silver); }
   .hero .name-row { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0 clamp(12px, 1.6vw, 22px); }
@@ -111,14 +110,18 @@
   .contact h3 { font-size: 1.4rem; }
   .contact p { margin-top: .6rem; color: var(--muted); max-width: 44ch; }
   .contact .actions { margin-top: 1.4rem; }
-  footer { border-top: 1px solid var(--line); padding: 28px 0 calc(28px + env(safe-area-inset-bottom)); color: var(--muted); font-size: .95rem; }
+  main { position: relative; z-index: 2; }
+  .city-end { position: relative; z-index: 2; height: clamp(200px, 28vw, 360px); overflow: hidden;
+    background: linear-gradient(180deg, transparent 0%, rgba(19,41,90,.55) 40%, #24467c 70%, #5f86b8 86%, #142446 100%); }
+  .city-end .skyline { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 72%; display: block; }
+  footer { position: relative; z-index: 2; background: var(--city); padding: 28px 0 calc(28px + env(safe-area-inset-bottom)); color: var(--muted); font-size: .95rem; }
   footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; }
 </style>
 </head>
 <body>
 
+<canvas id="rain" aria-hidden="true"></canvas>
 <header class="hero">
-  <canvas id="rain" aria-hidden="true"></canvas>
   <svg class="skyline" id="skyline" viewBox="0 0 1600 300" preserveAspectRatio="xMidYMax slice" aria-hidden="true"></svg>
   <div class="wrap hero-text">
     <div class="name-row">
@@ -139,7 +142,7 @@
     <div class="wrap">
       <div class="section-head">
         <h2 id="work-title">Selected work</h2>
-        <p>Every project here is live. Each one lists the decisions behind it, not just what it does.</p>
+        <p>My newest builds: 3D rooms, games and AI agents.</p>
       </div>
       <div id="projects"></div>
     </div>
@@ -175,7 +178,6 @@
           <p>I'm looking for creative developer, creative technologist and design engineer roles, in Denver or remote.</p>
           <div class="actions">
             <a class="btn btn-primary" href="mailto:Thill5523@gmail.com?subject=Hello%20Tyler">Email Tyler</a>
-            <a class="btn btn-quiet" href="resume.pdf">Download resume</a>
           </div>
         </div>
         <div>
@@ -190,6 +192,9 @@
   </section>
 </main>
 
+<div class="city-end" aria-hidden="true">
+  <svg class="skyline" id="skyline-end" viewBox="0 0 1600 300" preserveAspectRatio="xMidYMax slice"></svg>
+</div>
 <footer>
   <div class="wrap">
     <span>T. Hill · Shaden Technology · WorldVest · Denver</span>
@@ -212,7 +217,7 @@ const PROJECTS = [
       'The downtown grid draws in about 6 calls; each ring of distant towers is one instanced draw.',
       'Leave any room and you come back out at its door.'
     ],
-    url: 'https://shaden.technology/lobby/', label: 'Enter it',
+    url: 'https://shaden.technology/lobby/', label: 'Enter the Lobby, talk to Nexie, then take the elevator down to explore the city', panelLabel: 'Enter the Lobby',
     accent: '#5f86b8' },
   { id: 'pub', name: 'The Pub',
     what: 'A first-person bar with an AI bartender, a jukebox and the game on every screen.',
@@ -248,7 +253,7 @@ const PROJECTS = [
       'Each knows only what it is given, so it stays in character and on topic.',
       'Model calls run on Cloudflare Workers, so API keys never reach the browser.'
     ],
-    url: '', label: 'Meet them',   // add the Council's link, or leave empty to point people to the Nexus
+    url: 'https://originsoflate.xyz/council/', label: 'Meet them',
     accent: '#b79cf2' },
   { id: 'worldvest', name: 'WorldVest',
     what: 'A separate product from the Nexus: a shared market watchlist with an AI analyst named Maya. Built with a friend.',
@@ -298,7 +303,7 @@ PROJECTS.forEach(p => {
   const url = p.url || 'https://shaden.technology/lobby/';
   const label = p.url ? p.label : 'Find it in the Nexus';
   const media = el('a', { class: 'media', href: url, 'aria-label': `${label}: ${p.name}, live` },
-    el('div', { class: 'panel', style: `--accent:${p.accent};background:radial-gradient(110% 90% at 78% 18%, color-mix(in srgb, ${p.accent} 30%, transparent) 0%, transparent 62%), linear-gradient(165deg, #172a52 0%, #0a1430 100%)` }, el('span', { text: label })));
+    el('div', { class: 'panel', style: `--accent:${p.accent};background:radial-gradient(110% 90% at 78% 18%, color-mix(in srgb, ${p.accent} 30%, transparent) 0%, transparent 62%), linear-gradient(165deg, #172a52 0%, #0a1430 100%)` }, el('span', { text: p.panelLabel || label })));
   // preview image: media/<id>.jpg. Until it exists, the colored panel shows instead.
   const img = el('img', { src: `media/${p.id}.jpg`, alt: `${p.name}, a screenshot`, loading: 'lazy', decoding: 'async' });
   img.addEventListener('load', () => media.classList.add('has-media'));
@@ -324,41 +329,45 @@ NOTES.forEach(n => notesEl.append(el('article', { class: 'note' },
   n.status ? el('span', { class: 'status', text: n.status }) : null)));
 
 /* =====================================================================
-   HERO — skyline (seeded, same every visit) and sparse glyph rain
+   SKYLINES (seeded, the same every visit) and glyph rain down the whole page
    ===================================================================== */
-let seed = 7;
-const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-const svg = document.getElementById('skyline'), NS = 'http://www.w3.org/2000/svg';
-const add = (tag, a) => { const n = document.createElementNS(NS, tag); for (const k in a) n.setAttribute(k, a[k]); svg.append(n); return n; };
-// far row, lighter, then near row, darkest
-[[0.55, '#1f3560', 80, 190, 26], [1, '#060c1c', 40, 150, 22]].forEach(([depth, fill, hMin, hMax, count]) => {
-  let x = -20;
-  while (x < 1620) {
-    const w = 36 + rand() * 70, h = (hMin + rand() * (hMax - hMin)) * depth + (depth < 1 ? 70 : 0);
-    add('rect', { x: x.toFixed(1), y: (300 - h).toFixed(1), width: w.toFixed(1), height: h.toFixed(1), fill });
-    if (depth === 1) for (let i = 0; i < 3; i++) if (rand() > .55)
-      add('rect', { x: (x + 6 + rand() * (w - 14)).toFixed(1), y: (300 - h + 10 + rand() * (h - 30)).toFixed(1), width: 3, height: 4, fill: rand() > .5 ? '#cfe0f5' : '#7fd4ff', opacity: .75 });
-    x += w + rand() * 10;
-  }
-});
-// the saucer tower in the city, the Temple's pyramid far behind it
-add('rect', { x: 687, y: 52, width: 7, height: 220, fill: '#060c1c' });
-add('ellipse', { cx: 690.5, cy: 70, rx: 34, ry: 7, fill: '#060c1c' });
-add('rect', { x: 689.5, y: 26, width: 2, height: 30, fill: '#060c1c' });
-add('circle', { cx: 690.5, cy: 25, r: 2.4, fill: '#ff6f6f' });
-svg.prepend(add('path', { d: 'M 800 300 L 950 105 L 1100 300 Z', fill: '#2c4a7c' }));   // farthest, so lightest
+const NS = 'http://www.w3.org/2000/svg';
+function skyline(svg, seedValue, towerX, pyramidX) {
+  let seed = seedValue;
+  const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const add = (tag, a) => { const n = document.createElementNS(NS, tag); for (const k in a) n.setAttribute(k, a[k]); svg.append(n); return n; };
+  // far row, lighter, then near row, darkest
+  [[0.55, '#1f3560', 80, 190], [1, '#060c1c', 40, 150]].forEach(([depth, fill, hMin, hMax]) => {
+    let x = -20;
+    while (x < 1620) {
+      const w = 36 + rand() * 70, h = (hMin + rand() * (hMax - hMin)) * depth + (depth < 1 ? 70 : 0);
+      add('rect', { x: x.toFixed(1), y: (300 - h).toFixed(1), width: w.toFixed(1), height: h.toFixed(1), fill });
+      if (depth === 1) for (let i = 0; i < 3; i++) if (rand() > .55)
+        add('rect', { x: (x + 6 + rand() * (w - 14)).toFixed(1), y: (300 - h + 10 + rand() * (h - 30)).toFixed(1), width: 3, height: 4, fill: rand() > .5 ? '#cfe0f5' : '#7fd4ff', opacity: .75 });
+      x += w + rand() * 10;
+    }
+  });
+  // the saucer tower in the city, the Temple's pyramid far behind it
+  const t = towerX;
+  add('rect', { x: t - 3.5, y: 52, width: 7, height: 220, fill: '#060c1c' });
+  add('ellipse', { cx: t, cy: 70, rx: 34, ry: 7, fill: '#060c1c' });
+  add('rect', { x: t - 1, y: 26, width: 2, height: 30, fill: '#060c1c' });
+  add('circle', { cx: t, cy: 25, r: 2.4, fill: '#ff6f6f' });
+  svg.prepend(add('path', { d: `M ${pyramidX - 150} 300 L ${pyramidX} 105 L ${pyramidX + 150} 300 Z`, fill: '#2c4a7c' }));   // farthest, so lightest
+}
+skyline(document.getElementById('skyline'), 7, 690.5, 950);
+skyline(document.getElementById('skyline-end'), 23, 1010, 640);   // the same city from another street
 
 const canvas = document.getElementById('rain'), ctx = canvas.getContext('2d');
 const GLYPHS = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789アイウエオカキクケコサシスセソ@#$%&*+=<>'.split('');
-let cols = [], W = 0, H = 0, FS = 15, quiet = null;
+const hero = document.querySelector('.hero'), heroText = ['.hero .name-row', '.hero .lede', '.hero .actions'].map(q => document.querySelector(q));
+const cityEnd = document.querySelector('.city-end');
+let cols = [], W = 0, H = 0, FS = 15;
 function size() {
   const dpr = Math.min(devicePixelRatio || 1, 2);
-  W = canvas.clientWidth; H = canvas.clientHeight;
+  W = innerWidth; H = innerHeight;
   canvas.width = W * dpr; canvas.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   FS = W < 640 ? 13 : 15;
-  const c0 = canvas.getBoundingClientRect(), parts = ['.hero h1', '.hero .lede', '.hero .actions'].map(q => document.querySelector(q).getBoundingClientRect());
-  quiet = { l: Math.min(...parts.map(r => r.left)) - c0.left - 24, r: Math.max(...parts.map(r => r.right)) - c0.left + 24,
-            t: parts[0].top - c0.top - 16, b: parts[2].bottom - c0.top + 16 };
   const n = Math.max(6, Math.floor(W / 95));            // sparse on purpose
   cols = Array.from({ length: n }, (_, i) => ({ x: (i + 0.3 + Math.random() * 0.4) * (W / n), y: Math.random() * H, v: 18 + Math.random() * 26, len: 6 + Math.floor(Math.random() * 8),
     chars: Array.from({ length: 14 }, () => GLYPHS[Math.floor(Math.random() * GLYPHS.length)]) }));
@@ -367,27 +376,33 @@ function draw(dt) {
   ctx.clearRect(0, 0, W, H);
   ctx.font = `${FS}px ui-monospace, Menlo, Consolas, monospace`;
   ctx.textAlign = 'center';
+  // where the sky is on screen right now: strong over the two cities, faint over the reading
+  const hr = hero.getBoundingClientRect(), cr = cityEnd.getBoundingClientRect();
+  const quiet = heroText.map(e => e.getBoundingClientRect()).filter(r => r.bottom > 0 && r.top < H);
   for (const c of cols) {
     c.y += c.v * dt;
     if (c.y - c.len * FS > H) { c.y = -Math.random() * H * .4; c.v = 18 + Math.random() * 26; }
     for (let k = 0; k < c.len; k++) {
       const y = c.y - k * FS; if (y < 0 || y > H) continue;
-      let fade = 1 - y / H;                              // dissolves toward the skyline
-      if (quiet && c.x > quiet.l && c.x < quiet.r && y > quiet.t && y < quiet.b) fade *= 0.16;   // never fights the text
-      ctx.fillStyle = k === 0 ? `rgba(234,240,247,${.8 * fade})` : `rgba(127,180,235,${(.45 - k * .04) * fade})`;
+      let a;
+      if (y < hr.bottom) a = Math.max(0, 1 - (y - hr.top) / hr.height);                 // hero sky, dissolving toward the skyline
+      else if (y > cr.top && y < cr.bottom) a = 0.75 * (1 - (y - cr.top) / cr.height);  // footer sky, the same
+      else a = 0.3;                                                                       // behind the work: faint
+      for (const r of quiet) if (c.x > r.left - 24 && c.x < r.right + 24 && y > r.top - 16 && y < r.bottom + 16) { a *= 0.16; break; }
+      if (a <= 0.01) continue;
+      ctx.fillStyle = k === 0 ? `rgba(234,240,247,${.8 * a})` : `rgba(127,180,235,${(.45 - k * .04) * a})`;
       ctx.fillText(c.chars[(k + Math.floor(c.y / FS)) % c.chars.length], c.x, y);
     }
   }
 }
 size(); addEventListener('resize', size);
-let last = performance.now(), visible = true, running = !reduced;
-new IntersectionObserver(([e]) => { visible = e.isIntersecting; }).observe(canvas);
+let last = performance.now();
 function tick(now) {
   const dt = Math.min((now - last) / 1000, .05); last = now;
-  if (visible && !document.hidden) draw(dt);
-  if (running) requestAnimationFrame(tick);
+  if (!document.hidden) draw(dt);
+  requestAnimationFrame(tick);
 }
-if (running) requestAnimationFrame(tick); else draw(0);
+if (!reduced) requestAnimationFrame(tick); else { draw(0); addEventListener('scroll', () => draw(0), { passive: true }); }
 })();
 </script>
 </body>
